@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cesecore" default="compile" basedir=".">
+
+	<property name="version" value="1.1.2" />
+
+	<property environment="env" />
+
+	<import file="build-properties.xml" />
+	<import file="build-test.xml" />
+	<import file="build-ejb.xml" />
+
+	<!-- Clover stuff -->
+	<property name="clover.jar" location="${env.CLOVER_HOME}/lib/clover.jar" />
+	<taskdef resource="cloverlib.xml" classpath="${clover.jar}" />
+	<target name="-check.clover">
+		<available property="clover.installed" classname="com.cenqua.clover.CloverInstr" />
+	</target>
+	<target name="with.clover" depends="-check.clover" if="clover.installed">
+		<clover-setup />
+		<!-- If we don't like to have to shut down JBoss to get the test reults flushed
+			we might use the flushpolicy setting here.
+			See http://confluence.atlassian.com/display/CLOVER/clover-setup -->
+	</target>
+	<target name="clover.xml" depends="-check.clover" if="clover.installed">
+	    <clover-report>
+	       <current outfile="${build.dir}/clover_html/clover.xml">
+	          <format type="xml"/>
+	       </current>
+	    </clover-report>
+	 </target>
+	<target name="clover.html" depends="-check.clover" if="clover.installed">
+		<clover-html-report outdir="${build.dir}/clover_html" title="CeSeCore" />
+	</target>
+	<target name="clover.clean" depends="-check.clover" if="clover.installed">
+		<clover-clean/>
+		<delete dir="${build.dir}/clover_html" />
+	</target>
+	<!-- End Clover stuff -->
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="compile" description="Compiles CeSeCore" depends="compile-ejb">
+		<!--
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}"
+			classpath="${classes-client.dir} ${classes-entity.dir}">
+			<classpath refid="classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+		-->
+	</target>
+
+	<target name="compile-client">
+		<mkdir dir="${classes-client.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes-client.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}" includes="${source.fileset.cesecore-client.files}">
+			<classpath refid="test.client.classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+	</target>
+
+	<target name="compile-entity" depends="compile-client">
+		<mkdir dir="${classes-entity.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes-entity.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}" includes="${source.fileset.cesecore-entity.files}" classpath="${classes-client.dir}">
+			<classpath refid="classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+	</target>
+
+	<target name="compile-ejb" depends="compile-entity">
+		<mkdir dir="${classes-ejb.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes-ejb.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}" includes="${source.fileset.cesecore-ejb.files}">
+			<classpath location="${classes-client.dir}" />
+			<classpath location="${classes-entity.dir}" />
+			<classpath refid="classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+	</target>
+
+	<target name="create-log4config-bundle">
+		<mkdir dir="${build.dir}/tmp"/>
+		<!-- For appservers that don't come with Log4J we need to bundle a configuration file in the classpath (in the EARs lib/ directory in a JAR) -->
+		<copy file="${resources.dir}/conf/log4j-${appserver.type}.xml.sample" overwrite="true" tofile="${build.dir}/tmp/log4j.xml" failonerror="false"/>
+		<copy file="${resources.dir}/conf/log4j-${appserver.type}.xml" overwrite="true" tofile="${build.dir}/tmp/log4j.xml" failonerror="false"/>
+		<!-- If we don't have a specific file for an appserver, perhaps we have one for the subtype (i.e. jboss and jboss6) -->
+		<copy file="${resources.dir}/conf/log4j-${appserver.subtype}.xml.sample" overwrite="true" tofile="${build.dir}/tmp/log4j.xml" failonerror="false"/>
+		<copy file="${resources.dir}/conf/log4j-${appserver.subtype}.xml" overwrite="true" tofile="${build.dir}/tmp/log4j.xml" failonerror="false"/>
+		<jar destfile="${build.dir}/log4jconfig.jar" whenempty="skip" basedir="bin/tmp" includes="log4j.xml"/>
+		<delete file="${build.dir}/tmp/log4j.xml"/>
+	</target>
+
+	<!-- We include the configuration properties in a separate jar file placed in the ear classpath directory. -->
+	<target name="create-config-bundle">
+		<jar destfile="${build.dir}/cesecore-config.jar" whenempty="skip" basedir="${resources.dir}" includes="conf/cesecore.properties, conf/database.properties, conf/databaseprotection.properties, conf/extendedkeyusage.properties, conf/backup.properties, conf/ocsp.properties, conf/va.properties">
+			<zipfileset prefix="" dir="src/main/java" includes="defaultvalues.properties"/>	
+		</jar>
+	</target>
+
+	<target name="ear.archive" description="Compile test code and construct an EAR archive file for functional testing" depends="archive-ejb, create-log4config-bundle, create-config-bundle">
+		<antcall target="showtime" />
+		<property name="lib.dir" value="$lib" />
+
+		<delete dir="${web.dir}" />
+		<mkdir dir="${web.dir}" />
+		<mkdir dir="${filtered.web.dir}" />
+
+		<!-- Compile and archive the test utilities which are to be deployed. -->
+
+		<mkdir dir="${test-utils.dir}" />
+		<javac srcdir="src/functionaltests/java" destdir="${test-utils.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}">
+			<classpath refid="test.classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+		<jar destfile="${build.dir}/cesecore-test-ejb.jar" basedir="${test-utils.dir}">
+			<!-- exclude classes that should be available in the client library -->
+			<exclude name="org/cesecore/authentication/tokens/TestAuthenticationToken.class"/>
+			<exclude name="org/cesecore/**/*Remote.class"/>
+			<zipfileset prefix="META-INF" dir="src/functionaltests/resources/appserver" includes="*.xml"/>	
+		</jar>
+		<jar destfile="${build.dir}/cesecore-test-client.jar" basedir="${test-utils.dir}">
+			<!-- include classes that should be available in the client library -->
+			<include name="org/cesecore/authentication/tokens/TestAuthenticationToken.class"/>
+			<include name="org/cesecore/**/*Remote.class"/>
+		</jar>
+
+		<!-- Perform filtering on application files. -->
+		<copy todir="${filtered.web.dir}">
+			<filterchain>
+				<expandproperties />
+			</filterchain>
+			<fileset dir="src/functionaltests/resources" />
+		</copy>
+
+		<!-- Compile test servlets -->
+		<mkdir dir="${filtered.web.dir}/WEB-INF/classes" />
+		<javac srcdir="src/functionaltests/web" destdir="${filtered.web.dir}/WEB-INF/classes" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}">
+			<classpath refid="test.classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+
+		<!-- Build WAR file -->
+		<war destfile="${build.dir}/${archive.name}.war">
+			<fileset dir="${filtered.web.dir}" includes="WEB-INF/**" />
+		</war>
+
+		<!-- Build EAR file -->
+		<ear destfile="${build.dir}/${archive.name}.ear" appxml="${filtered.web.dir}/META-INF/application.xml">
+			<fileset dir="${build.dir}" includes="*.war" />
+			
+			<zipfileset prefix="lib" dir="${lib.dir}">
+				<include name="*.jar" />
+			</zipfileset>
+			<zipfileset prefix="lib" dir="${lib.dir}/hibernate" excludes="${bundle-hibernate-exclude}"/>
+
+			<zipfileset prefix="lib" dir="${build.dir}">
+				<include name="log4jconfig.jar" />
+				<include name="cesecore-config.jar" />
+			</zipfileset>
+	
+			<zipfileset prefix="lib" file="${clover.jar}" erroronmissingdir="false" erroronmissingarchive="false"/>
+
+			<zipfileset prefix="lib" dir="${build.dir}">
+				<include name="cesecore-entity*.jar" />
+				<include name="cesecore-client*.jar" />
+				<include name="cesecore-test-client*.jar" />
+			</zipfileset>
+
+			<fileset dir="${build.dir}">
+				<include name="*.jar" />
+				<exclude name="cesecore-test-client*.jar" />
+				<exclude name="cesecore-entity*.jar" />
+				<exclude name="cesecore-client*.jar" />
+				<exclude name="log4jconfig.jar" />
+				<exclude name="cesecore-config.jar" />
+			</fileset>
+		</ear>
+	</target>
+
+	<target name="harddeploy" description="Deploys the test EAR to an application server." depends="ear.archive">
+		<antcall target="showtime" />
+		<copy todir="${deploy.dir}">
+			<fileset dir="${build.dir}" includes="${archive.name}.ear" />
+			<fileset dir="${filtered.web.dir}" includes="cesecore-ds.xml" />
+		</copy>
+		<antcall target="showtime" />
+	</target>
+
+	<!-- Utility Targets -->
+
+	<target name="showtime">
+		<tstamp>
+			<format property="completiontime" pattern="yyyy-MM-dd HH:mm:ss Z" />
+		</tstamp>
+		<echo message="Task completed ${completiontime}." />
+	</target>
+	
+	<!-- How to print classpath: 
+				
+	<path id="apa">
+		<path refid="test.classpath" />
+		<path refid="lib.jee.classpath" />
+		<pathelement location="${functest-classes.dir}" />
+		<pathelement location="${test-utils.dir}" />
+		<pathelement path="${clover.jar}" />
+	</path>
+	<pathconvert property="apa2" refid="apa"></pathconvert>
+	<echo message="${apa2}"/>
+			
+	-->
+
+	<target name="ziprelease" description="Make a zip file for CESeCore release">
+		
+		<echo>Trying to get SVN revision of HEAD.</echo>
+        <property name="revision" value="HEAD"/>	
+		
+        <!-- find out svn.revision of HEAD, need svn.exe installed on local machine will end up in property ${Revision} -->
+        <exec executable="svn" output="svnlog.out">
+            <arg line="info -r ${revision}"/>
+        </exec>
+		<loadproperties srcFile="svnlog.out">
+		      <filterchain>
+		        <linecontains>
+		          <contains value="Revision"/>
+		        </linecontains>
+		      </filterchain>
+		</loadproperties>
+		<delete file="svnlog.out"/>
+		<echo>"svn.revision" is: ${Revision}</echo>
+
+		<zip destfile="cesecore_r${Revision}.zip">
+		    <zipfileset dir="." prefix="cesecore_r${Revision}" filemode="600" dirmode="700"> 
+		    	<include name="**/**" />
+		    	<exclude name="**/.svn" />
+		    	<exclude name="bin/**" />
+				<exclude name="build/**" />
+		    	<exclude name="target/**" />
+		    	<exclude name="cesecore.jar" />
+		    	<exclude name="cesecore*.zip" />
+				<exclude name="cesecore*.zip.SHA1" />
+				<exclude name="**/*.sh" />
+		    	<exclude name="**/*.zip" />
+				<exclude name="**/.clover/**" />
+				<exclude name="**/com.cenqua*" />
+		    </zipfileset>
+		    <zipfileset dir="." prefix="cesecore_r${Revision}" filemode="700" dirmode="700"> 
+		    	<include name="**/*.sh" />
+		    </zipfileset>
+		</zip>
+        <checksum file="cesecore_r${Revision}.zip" algorithm="SHA1" forceOverwrite="yes"/>      
+        <checksum file="cesecore_r${Revision}.zip" algorithm="SHA1" property="cesecoreSHA1"/>      
+        <echo message="SHA1 checksum: ${cesecoreSHA1}" />
+	</target>
+
+
+</project>

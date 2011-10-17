@@ -1,0 +1,255 @@
+CESeCore 1.1.2 2011-10-17
+-------------------------
+Improvement
+    [CESECORE-268] - Reduce memory consumption when using InternalResouces
+
+Task
+    [CESECORE-266] - Merge the method added to RoleManagementSession in Rev# 12221 in EJBCA, as well as the bug fix from Rev# 12838
+
+Bug
+    [CESECORE-267] - AccessRuleData.getTreeState uses recursiveBool directly instead of method to get flag
+    [CESECORE-269] - SQL injection flaws in QueryCriteria
+
+CESeCore 1.1.1 2011-10-03
+--------------------------
+svn tag: CESeCore_1_1_1-20111003
+
+New Feature
+    [CESECORE-80] - Make Key Extraction work on HSMs
+    [CESECORE-220] - Allow multiple CryptoTokens using same HSM Slot
+    [CESECORE-246] - Remove MD5WithRSA from supported algorithms of the CA
+    [CESECORE-255] - Support for certificate extensions with raw and/or dynamic value
+
+Task
+    [CESECORE-228] - Use an AlwaysAllowAutenticationToken when archiving CRLs during CRL creation
+
+Improvement
+    [CESECORE-63] - Document, with javadoc and overview in wiki, Secure audit logger
+    [CESECORE-108] - Timer service can't be tested, modify so that the interval can be set.
+    [CESECORE-183] - Add standalone functionality to OCSP
+    [CESECORE-196] - Create method to check authorization without logging to security audit
+    [CESECORE-197] - Verify security audit logs even if public key is not in the HSM
+    [CESECORE-198] - Allow access user aspects to match against full DNs
+    [CESECORE-200] - Contructors to CertificateStatus must be public
+    [CESECORE-202] - CaSession.getCAInfo does not allow access to parameter doSignTest
+    [CESECORE-203] - Move unused constants out of ExtendedInformation
+    [CESECORE-204] - Constructor to NullCryptoToken should not throw InstantiationException
+    [CESECORE-205] - CertificateStoreSession.setRevokeStatus should return boolean
+    [CESECORE-206] - Make CertificateCreateSession.getCADnFromRequest available as utility method
+    [CESECORE-207] - make CertificateCreateSession.createCertificate method with CA parameters available as local interface method
+    [CESECORE-208] - getIssuanceRevocationReason should be a method on ExtendedInformation
+    [CESECORE-211] - Add default constructor to CertificateProfile
+    [CESECORE-213] - Move CertTools, StringTools and RequestMessageUtil to straigten out internal dependencies
+    [CESECORE-216] - Remove duplicated constants from OcspConfiguration
+    [CESECORE-217] - Support upgrade from earlier versions
+    [CESECORE-221] - Checksum documentation for Backup and Restore
+    [CESECORE-223] - BaseCryptoToken.setAutoActivatePin should be public
+    [CESECORE-225] - CAInfo.setName and setSubjectDN is needed
+    [CESECORE-229] - Optimize X509CertificateAuthenticationToken
+    [CESECORE-233] - Add method to CaSession to get CA without cache
+    [CESECORE-235] - Avoid unnecessary Base64 encoding of ASCII printable strings during XML Serialization
+    [CESECORE-237] - Improve on equals/hashcode in AlwaysAllowAuthenticationToken
+    [CESECORE-239] - Log correct info in fields supplied to security audit log
+    [CESECORE-243] - Derive a new interface from ResponseMessage to add certificate functionality to responses
+    [CESECORE-257] - Do not allow to remove a CRL using remote interface
+    [CESECORE-259] - Backup file cannot be decrypted by LunaSA
+    [CESECORE-265] - Create certificate should throw IllegalKeyexception when the public key in a request is invalid
+
+Bug
+    [CESECORE-194] - Concurrency issues with TrustedTime
+    [CESECORE-201] - Correct javadoc for CertTools.getSubjectAlternativeName
+    [CESECORE-209] - Add missing merge of isDirAttrField to DnComponents
+    [CESECORE-210] - CertificateStoreSession.setRevokeStatusNoAuth does check for authorization
+    [CESECORE-215] - Add missing internal localization strings
+    [CESECORE-218] - UsernamePrincipal must be serializeable
+    [CESECORE-219] - Possible NPE adding CA
+    [CESECORE-222] - NPE changing certificate profiles setting some values to null
+    [CESECORE-224] - CertificateData.findAllOnHold is missing a query parameter, based on ECA-2251
+    [CESECORE-226] - CA token status is not set correctly
+    [CESECORE-227] - CA token does not generate encryption keys
+    [CESECORE-230] - CryptoToken can not generated implicitlyCA and DSA keys
+    [CESECORE-231] - Do not set previous sign key alias in CAToken if we don't have a previous sign key
+    [CESECORE-232] - SQL injection flaws in some beans
+    [CESECORE-234] - PrivateKeyUsagePeriod extension does not work
+    [CESECORE-236] - CATokenStatus not always updated correctly when activating/deactivating
+    [CESECORE-238] - Enforce unique subject DN does not work with unused fields in DN
+    [CESECORE-240] - Extended CA services not updated correctly
+    [CESECORE-242] - Request and certificate issuance logging can be faulty
+    [CESECORE-244] - Paths for crypto tokens does not work on windows in some cases
+    [CESECORE-245] - AuditLogCryptoTokenConfigData is not integrity protected
+    [CESECORE-247] - Username field suspecitble to xss, allows <>
+    [CESECORE-249] - The database password can be disclosed in the audit log
+    [CESECORE-250] - Log management frequency can be set to invalid value
+    [CESECORE-252] - IntegrityProtected log must use transactions on PostgreSQL
+    [CESECORE-253] - No access control for secure audit using remote API
+    [CESECORE-254] - Nullbyte can be used in certificate creation
+    [CESECORE-256] - Possible to move data between database columns without detection when integrity protection is use
+    [CESECORE-258] - ConfigurationHolder unable to read from external property files or ocsp.properties
+    [CESECORE-261] - Role id can be invalidly generated in rare cases
+    [CESECORE-262] - Fix NPE in ProtectedData
+    [CESECORE-263] - Audit Log transaction problem in postgres
+    [CESECORE-264] - Query for "UsedCertificateProfileIds" in CertificateData is wrong
+
+CESeCore 1.1.0 2011-07-18
+--------------------------
+svn tag: CESeCore_1_1_0-20110718
+
+Task 
+    * [CESECORE-115] - Create specification and developer Guide for secure audit logging
+    * [CESECORE-138] - Merge changes from ECA-1595 into CESeCore
+    * [CESECORE-139] - Merge changes from ECA-1686 into CESeCore
+    * [CESECORE-143] - Merge changes from ECA-1888 into CESeCore
+    * [CESECORE-144] - Merge changes from ECA-1956 into CESeCore
+    * [CESECORE-147] - Merge changes from ECA-2005 into CESeCore
+    * [CESECORE-148] - Merge changes from ECA-2008 into CESeCore
+    * [CESECORE-149] - Merge changes from ECA-2024 into CESeCore
+    * [CESECORE-155] - Merge changes from ECA-1151 into CESeCore
+    * [CESECORE-156] - Merge changes from ECA-1405 into CESeCore
+    * [CESECORE-157] - Merge changes from ECA-1755 into CESeCore
+    * [CESECORE-158] - Merge changes from ECA-1827 into CESeCore
+    * [CESECORE-159] - Merge changes from ECA-1913 into CESeCore
+    * [CESECORE-162] - Merge changes from ECA-2018 into CESeCore
+    * [CESECORE-163] - Merge changes from ECA-2033 into CESeCore
+    * [CESECORE-164] - Merge changes from ECA-2057 into CESeCore
+    * [CESECORE-165] - Merge changes from ECA-2075 into CESeCore
+    * [CESECORE-166] - Merge changes from ECA-2081 into CESeCore
+    * [CESECORE-167] - Merge changes from ECA-2083 into CESeCore
+    * [CESECORE-169] - Merge changes from ECA-2098 into CESeCore
+    * [CESECORE-170] - Merge changes from ECA-2106 into CESeCore
+    * [CESECORE-171] - Merge changes from ECA-2107 into CESeCore
+    * [CESECORE-172] - Merge changes from ECA-2112 into CESeCore
+    * [CESECORE-173] - Merge changes from ECA-2115 into CESeCore
+    * [CESECORE-174] - Merge changes from ECA-2119 into CESeCore
+
+New Feature   	 
+    * [CESECORE-185] - Support for alternate secure audit based on database integrity protection
+
+Improvement
+    * [CESECORE-106] - Add HSM timeout handling to OCSP Response generator
+    * [CESECORE-113] - Log trusted time synchronization lost only once
+    * [CESECORE-114] - Security events logger requires special JBoss configuration
+    * [CESECORE-119] - Create specification and developer guidance for TrustedTime
+    * [CESECORE-131] - Add functional test for log sign with different frequency
+    * [CESECORE-132] - Missing transaction timeout setting for create CRL session
+    * [CESECORE-180] - Use QueryResultWrapper.getSingleResult to avoid exception handling
+    * [CESECORE-181] - Use proper JPQL syntax in queries
+    * [CESECORE-182] - Use StringBuilder instead of StringBuffer where thread safety isn't required
+    * [CESECORE-184] - Create abstract common session bean for OcspResponseGenerator session beans.
+    * [CESECORE-186] - Implement a certificate cache for OCSP
+    * [CESECORE-187] - Convert OCSP to start using CryptoTokens
+    * [CESECORE-191] - Add automated cache updates to OCSP
+
+Bug
+    * [CESECORE-134] - Needs a way to reset audit log sequence after recovery   	 	  
+    * [CESECORE-178] - cesecore-config.jar is included in the root of cesecore.ear 
+    * [CESECORE-188] - db restore command must be executed outside the transactional scope currently defined in the RestoreSessionBean
+    * [CESECORE-189] - QueryCriteria conditional criteria are defined for Numbers only
+    * [CESECORE-190] - Synchronization issues on JsonSerializer 
+    * [CESECORE-192] - LogManagementData crypto token data NullPointerException and ehcache disk storage not necessary 	
+    * [CESECORE-193] - CESeCore throws stack trace on startup when P11-emulator is absent. 	
+
+CESeCore 1.0.2, 2011-05-04
+--------------------------
+svn tag: CESeCore_1_0_2-20110504
+
+New Feature
+    * [CESECORE-24] - Implement Trusted Time     
+    * [CESECORE-41] - Implement backup and restore
+
+Improvement	
+    * [CESECORE-86] - Remove reflective instantiation of logger classes in OcspResponseGeneratorSessionBean 
+    * [CESECORE-105] - Rename UserDataVO
+
+Task
+    * [CESECORE-82] - Functional testing of Backup and recovery is missing
+    * [CESECORE-103] - Proper audit log when generating exportable key pair
+    
+Bug  
+    * [CESECORE-68] - SecurityEventsLoggerSessionBean uses threads
+    * [CESECORE-111] - Functional tests for key pair generation logging with appropriate event type
+    * [CESECORE-112] - Log to audit trail the public component of a generated key pair
+    * [CESECORE-121] - Restore does not work on windows
+
+CESeCore 1.0.1, 2011-03-25
+--------------------------
+svn tag: CESeCore_1_0_1-20110325
+
+New Feature
+    * [CESECORE-40] - Support Glassfish and JBoss application servers
+    * [CESECORE-81] - Add Digital signature protection to database integrity protection 	    
+    * [CESECORE-83] - Add plain key generation and deletion methods to ca token session
+
+Improvement
+    * [CESECORE-39] - SecureAuditLog activates and deactivates the crypto token for every log signing 
+    * [CESECORE-44] - Add tests for generating initial CA keys using session beans 
+    * [CESECORE-51] - ExtendedCAServiceInfo contains hard references to EJBCA classes 	 
+    * [CESECORE-52] - Replace super_administrator with add_ca privilege 	
+    * [CESECORE-58] - Remove Authenticationtoken parameter from methods where no authorization is needed 
+    * [CESECORE-62] - Remove EJBCA specific classes from OCSP responder 	
+    * [CESECORE-72] - Add functional tests for authorization of security audit  
+    * [CESECORE-73] - Use a simple long value instead of Temporal for in Security audit 	
+    * [CESECORE-76] - Improve JavaDoc in BaseCryptoToken 	
+    * [CESECORE-78] - RoleNotFoundException should be checked exception 		 
+    * [CESECORE-85] - Move all access rules to central class 
+    * [CESECORE-93] - Verify log integrity should audit log success or failure depending on the result 
+    * [CESECORE-97] - Improve messages when audit verification fails 	
+    
+Task
+    * [CESECORE-5] - Implement Session Beans   	  
+    * [CESECORE-16] - Support for PostgreSQL 	 
+    * [CESECORE-21] - Document 3rd part libraries and licenses used 	
+    * [CESECORE-25] - Implement SecureAudit logging across CESeCore 
+    * [CESECORE-32] - Implement access control across CESeCore  
+    * [CESECORE-61] - Document all aspects of Authentication and Authorization in Developers' Guide in wiki 	
+    * [CESECORE-64] - Make sure that all functional tests in CESECORE clean the DB after themselves, even if they fail. 	
+    * [CESECORE-70] - CertificateKeyAssociationData requires JavaDoc 
+
+Bug
+    * [CESECORE-46] - Certificate Key association missing functional tests   	  
+    * [CESECORE-53] - AccessRuleData and AccessUserAspectData contains redundant database columns 	
+    * [CESECORE-65] - Obtain current time, Obtain time from trusted source, and Validate the accuracy is missing in functional testing 
+    * [CESECORE-66] - Don't use hard coded temp directories 	
+    * [CESECORE-67] - SecurityEventValidatorTest does not test any volume of logs 
+    * [CESECORE-69] - SchedulerSession should be local only interface 		 
+    * [CESECORE-79] - Export and query logs does not work on glassfish 	
+    * [CESECORE-84] - Apparent transactional issue in LogManagement appears on PostgreSQL 
+    * [CESECORE-87] - Paths for crypto tokens does not work on windows in some cases 	
+    * [CESECORE-90] - ExportAuditLogs does not close files and streams correctly after exporting
+    * [CESECORE-91] - OcspresponseGeneratortest does not work completely on glassfish 	
+    * [CESECORE-94] - LOG_SIGN events causes validation error 	
+    * [CESECORE-95] - Proper event type logging in Role Management
+    * [CESECORE-96] - CertificateKeyAssociation audit logs no details and bind instead of unbind in case of failure 		 
+    * [CESECORE-99] - Create certificate does not work well with request supplied values 	
+    * [CESECORE-100] - Getting trusted time must look for specific lines of ntpq output 	
+    * [CESECORE-102] - Proper event type logging when changing CA token properties
+
+CESeCore 1.0.0, 2011-03-10
+--------------------------
+svn tag: CESeCore_1_0_0-20110310
+
+New Feature
+    * [CESECORE-1] - Set up a build project and add initial classes for CESeCore
+    * [CESECORE-7] - Implement SecurityAuditLogger
+    * [CESECORE-8] - Implement Roles
+    * [CESECORE-9] - Add classes for reading configuration
+    * [CESECORE-10] - Implement Certificate Profiles
+    * [CESECORE-13] - Implement Authorization
+    * [CESECORE-14] - Implement RolesAccess
+    * [CESECORE-17] - Implement CA session (CRL profile, Cert and CRL issuance)
+    * [CESECORE-18] - Implement Key Management
+    * [CESECORE-22] - Create ant target for release package
+    * [CESECORE-23] - Implement Certificate and CRL store
+    * [CESECORE-28] - Implement OcspResponseGenerator
+    * [CESECORE-30] - Implement database integrity protection
+    * [CESECORE-33] - Implement CRL create session bean
+    * [CESECORE-35] - Implement Certificate Create session bean
+
+Improvement
+    * [CESECORE-3] - Set up unit testing, FindBugs, PMD and Clover analysis for CeSecore.
+    * [CESECORE-11] - Upgrade all unit tests to JUnit4
+    * [CESECORE-15] - Add Glassfish's EJB checker to ant build.
+    * [CESECORE-31] - Fix viewvc for CeSecore in Jira, or link to fisheye instead
+
+Task
+    * [CESECORE-6] - Implement Authentication
+    * [CESECORE-36] - Create a bundled jar containing JBoss logging files

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cesecore-test" basedir=".">
+
+
+	<condition property="p11exclude" value="" else="**/*PKCS11*Test.class">
+		<isset property="test.includep11"/>
+	</condition>
+	
+	<condition property="exclude-transactiontimeout-test" value="**/TransactionTimeoutTest.class">
+		<or>
+			<matches pattern="glassfish" string="${appserver.type}" />
+			<matches pattern="weblogic" string="${appserver.type}" />
+		</or>
+	</condition>
+
+	<!-- Dont run tests if -Dskip.test=true -->
+	<target name="test:unit" description="Run all JUnit tests. Test can be skipped using -Dskip.test=true (ant -Dskip.test=true harddeploy), add -Dtest.includep11=true to include PKCS11 HSM tests." depends="with.clover, clean, compile" unless="skip.test">	
+		<mkdir dir="${test-classes.dir}" />
+		<javac srcdir="src/test" destdir="${test-classes.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}">
+			<classpath refid="test.classpath" />
+			<classpath refid="lib.jee.classpath" />
+		</javac>
+		<antcall target="showtime" />
+		<echo message="pkcs11-exclude=${p11exclude}"/>
+
+		<delete dir="${reports.dir}" />
+		<mkdir dir="${reports.dir}" />
+		<mkdir dir="${reports.dir}/html" />
+		<junit printsummary="true" haltonfailure="no">
+			<classpath>
+				<path refid="test.classpath" />
+				<path refid="lib.jee.classpath" />
+				<pathelement path="${test-classes.dir}" />
+				<pathelement path="${clover.jar}" />
+				<pathelement location="src/test/resources/" />
+				<pathelement location="src/main/resources/" />
+				<pathelement location="src/main/resources/conf/" />
+			</classpath>
+
+			<batchtest fork="yes" todir="${reports.dir}">
+				<fileset dir="${test-classes.dir}">
+					<include name="**/*Test.class" />
+					<exclude name="${p11exclude}" />
+				</fileset>
+			</batchtest>
+			<formatter type="xml" />
+		</junit>
+		<antcall target="createreport" />
+		<antcall target="showtime" />
+	</target>
+
+	<target name="test:func" description="Runs the functional test suite, add -Dtest.includep11=true to include PKCS11 HSM tests (ant -Dtest.includep11=true test:func)." depends="with.clover">
+		<antcall target="showtime" />
+		<echo message="pkcs11-exclude=${p11exclude}"/>
+		<!-- The below is only valid for JBoss 
+		<fail message="${archive.name}.ear has not been deployed.">
+			<condition>
+				<not>
+					<available file="${deploy.dir}/${archive.name}.ear" />
+				</not>
+			</condition>
+		</fail>
+		<echo>Running functional test suite against ${deploy.dir}/${archive.name}.war</echo>
+		-->
+		<echo>Running functional test suite against appserver ${appserver.home}</echo>
+
+		<!-- Compile functional test classes -->
+		<property name="functest-classes.dir" value="${build.dir}/classes/func" />
+		<property name="jndi.properties.file" value="src/functionaltests/resources/jndi.properties" />
+		<property name="log4j.test.file" value="src/test/resources/log4j.xml" />
+		<mkdir dir="${functest-classes.dir}" />
+		<javac srcdir="src/functionaltests/test" destdir="${functest-classes.dir}" debug="on" includeantruntime="no" encoding="iso8859-1" target="${java.target.version}">
+			<classpath>
+				<pathelement location="${test-utils.dir}" />
+				<path refid="test.client.classpath" />
+				<path refid="lib.jee.classpath" />
+			</classpath>
+		</javac>
+
+		<copy file="${log4j.test.file}" tofile="${test-classes.dir}/log4j.xml" failonerror="true" />
+
+		<copy file="${jndi.properties.file}" todir="${test-classes.dir}" failonerror="false" />
+
+		<!-- TODO: This target requires a test that the application server is up and running. -->
+
+		<!-- Run tests -->
+		<mkdir dir="${reports.dir}/html" />
+		
+		<junit printsummary="true" haltonfailure="no">
+			<classpath>
+				<path refid="test.client.classpath" />
+				<path refid="lib.jee.classpath" />
+				<pathelement location="${functest-classes.dir}" />
+				<pathelement location="${test-utils.dir}" />
+				<pathelement location="src/main/resources/" />
+				<pathelement location="src/main/resources/conf/" />
+				<pathelement location="src/test/resources/" />
+				<pathelement location="src/functionaltests/resources/" />
+				<pathelement location="src/functionaltests/resources/conf/" />
+				<pathelement path="${clover.jar}" />
+			</classpath>
+			<batchtest fork="yes" todir="${reports.dir}">
+				<fileset dir="${functest-classes.dir}">
+					<include name="**/*Test.class" />
+					<!-- Transaction timeout test only works on JBoss, since configuring timeouts on Glassfish is not as easy -->
+					<exclude name="${exclude-transactiontimeout-test}" />
+					<exclude name="${p11exclude}" />
+				</fileset>
+			</batchtest>
+			<formatter type="xml" />
+		</junit>
+		<antcall target="createreport" />
+
+		<antcall target="showtime" />
+	</target>
+
+	<target name="createreport">
+		<fail message="'reports.dir' is not set." unless="reports.dir" />
+		<junitreport todir="${reports.dir}">
+			<fileset dir="${reports.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${reports.dir}/html" />
+		</junitreport>
+		<echo message="" />
+		<echo message="Results are available in file://${reports.dir}/html/index.html" />
+	</target>
+
+	<target name="-check.glassfish">
+		<available property="glassfish.installed" file="${env.GLASSFISH_HOME}/lib/appserv-rt.jar" />
+	</target>
+
+	<target name="with.glassfish" depends="-check.glassfish" if="clover.installed">
+		<clover-setup />
+	</target>
+
+	<target name="test:verify" description="Runs Glassfish's EJB verifier" depends="with.glassfish">
+		<echo>"--verbose --destdir bin/verifier ${build.dir}/${archive.name}.ear"</echo>
+		<fail message="GLASSFISH_HOME environment variable is not set to a valid Glassfish (v2) directory.${line.separator}${env.GLASSFISH_HOME}/bin/verifier can not be found.">
+			<condition>
+				<not>
+					<available file="${env.GLASSFISH_HOME}/bin/verifier" />
+				</not>
+			</condition>
+		</fail>
+		<fail message="${archive.name}.ear has not been created">
+			<condition>
+				<not>
+					<available file="${build.dir}/${archive.name}.ear" />
+				</not>
+			</condition>
+		</fail>
+		<!-- make sure reports dir exists -->
+		<mkdir dir="${reports.dir}" />
+		<exec executable="${env.GLASSFISH_HOME}/bin/verifier" failonerror="true" vmlauncher="false">
+			<arg line="-d bin/reports ${build.dir}/${archive.name}.ear" />
+		</exec>
+
+	</target>
+
+
+</project>

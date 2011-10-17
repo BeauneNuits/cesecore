@@ -1,0 +1,98 @@
+CESeCore 1.1.2 2011-10-17
+--------------------------
+svn tag: CESeCore_1_1_2-20111017
+
+This is a release that fixes a few bugs and and reduces memory consumption. 
+
+See the file CHANGELOG for detailed information of issues fixed.
+
+Important security related changes:
+- Fixed an SQL injection vulnerability in QueryCriteria.
+
+Known issues:
+- None
+
+CESeCore 1.1.1 2011-10-03
+--------------------------
+svn tag: CESeCore_1_1_1-20111003
+
+This is a release that fixes bugs and makes API improvements as a result of integrating CESecore
+into the first products. This release also fixes the review issues found when reviewing CESeCore 1.0.2. 
+
+See the file CHANGELOG for detailed information of issues fixed.
+
+Important security related changes:
+- Security audit now has two implementations, queued and database integrity protected.
+- Backup logs SHA256 checksum of backup file to secure audit.
+- Trusted time improvements.
+
+Known issues:
+- None
+
+CESeCore 1.1.0 2011-07-18
+--------------------------
+svn tag: CESeCore_1_1_0-20110718
+
+This is a mirror branch of 1.0.3, created primarily as a first step to integration from 
+EJBCA. This primarily involved updating files in CESeCore with bug fixes performed on 
+their EJBCA equivalents since CESeCore was created. 
+
+See the file CHANGELOG for detailed information of issues fixed.
+
+Known issues:
+- OCSP Standalone functionality is incomplete
+
+CESeCore 1.0.2, 2011-05-04
+--------------------------
+svn tag: CESeCore_1_0_2-20110504
+
+This version covers primarily the functionality not completed in time for 1.0.1
+
+This is primarily:
+
+- Issues in SecureAudit which required further work
+- Completion of NTP time functionality. 
+- Completion of the backup/recovery routines.
+
+See the file CHANGELOG for detailed information of issues fixed.
+
+Known issues:
+- Cvc (eac epassport) certificates does not handle timezones correctly, see https://jira.primekey.se/browse/CESECORE-127
+- Restore (after backup) will not work using an HSM, see https://jira.primekey.se/browse/CESECORE-122
+
+CESeCore 1.0.1, 2011-03-25
+--------------------------
+svn tag: CESeCore_1_0_1-20110325
+
+This is the first semi-public release, being released to Oppida for evaluation. 
+
+Changes from 1.0.0 have been the following:
+
+- Improving support for the JBoss and Glassfish application servers.
+- Adding support for the PostgreSQL database.
+- Documentation and Developers' Support
+- Fixing bugs uncovered in testing of 1.0.0 
+
+This is an internal release, released for testing and quality assurance. 
+All modules have code and can start to be tested.
+
+See the file CHANGELOG for detailed information of issues fixed.
+
+CESeCore 1.0.0, 2011-03-10
+--------------------------
+svn tag: CESeCore_1_0_0-20110310
+
+This is an internal release, released for testing and quality assurance. 
+All modules have code and can start to be tested.
+
+- Backup and Recovery
+- Certificate and Profile Management
+- Security Audit
+- Key Management
+- Access Control
+- Roles
+- Identification and Authentication
+- Trusted Time
+
+
+See the file CHANGELOG for detailed information of issues fixed.

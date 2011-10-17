@@ -1,0 +1,52 @@
+#
+# This properties file configures settings which are translated into the persistence.xml file.
+# See src/main/resources/persistence/persistence-ds-template.xml
+#
+
+# database.vendor specific which type of database is used.
+# Possible values: mysql, postgres
+# Default: mysql
+#database.vendor=mysql
+#database.vendor=postgres
+
+# The name of the database.
+# Default: cesecore
+#database.name=cesecore
+
+# Login information to the database
+# Default: cesecore:cesecore
+#database.username=cesecore
+#database.password=cesecore
+
+# JDBC driver classname.
+# The J2EE server needs to be configured with the appropriate JDBC driver for the selected database
+# Default: com.mysql.jdbc.Driver
+#database.driver=com.mysql.jdbc.Driver
+#database.driver=org.postgresql.Driver
+
+# Database host
+# Default: 127.0.0.1
+#database.host=127.0.0.1
+
+# Database port
+# Default: 3306 
+#database.port=3306
+#database.port=5432
+
+# Database connection URL.
+# This is the URL used to connect to the database, used to configure a new datasource in JBoss.
+# Default: jdbc:mysql://${database.host}:${database.port}
+#database.url=jdbc:mysql://${database.host}:${database.port}
+#database.url=jdbc:postgresql://${database.host}:${database.port}
+
+# datasource.jndi-name-prefix can differ between different application servers.
+# Use java:/ for JBoss
+# Use jdbc/ for Glassfish
+# Default: java:/
+#datasource.jndi-name-prefix = java:/
+#datasource.jndi-name-prefix = jdbc/
+
+# datasource.jndi-name can be used to re-configure the datasource name used. 
+# Normally you should not change this.
+# Default: CESeCoreDS
+#datasource.jndi-name=CESeCoreDS

@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cesecore-properties" basedir=".">
+
+	<!-- Import configuration info, default values are specified below, but if set in the configuration
+	     properties files, the properties files values are used. -->
+    <property file="src/main/resources/conf/database.properties" />
+
+	<property file="src/main/java/defaultvalues.properties" />
+
+	<property name="java.target.version" value="1.6"/>
+	
+	<!-- Directory properties -->
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="build.dir" value="${basedir}/bin" />
+	<property name="src.dir" value="${basedir}/src/main/java" />
+	<property name="resources.dir" value="${basedir}/src/main/resources" />
+	
+	<property name="reports.base.dir" location="${build.dir}/reports/" />
+	<property name="reports.dir" location="${reports.base.dir}/run" />
+	<property name="web.dir" value="${build.dir}/web" />
+	<property name="filtered.web.dir" value="${web.dir}/filtered" />
+	<property name="classes.dir" value="${build.dir}/classes/main" />
+	<property name="classes-client.dir" value="${build.dir}/classes-client/main" />
+	<property name="classes-entity.dir" value="${build.dir}/classes-entity/main" />
+	<property name="classes-ejb.dir" value="${build.dir}/classes-ejb/main" />
+	<property name="test-classes.dir" value="${build.dir}/classes/test" />
+	<property name="test-utils.dir" value="${build.dir}/classes/func-util" />
+
+	<condition property="jboss.home" value="${env.JBOSS_HOME}">
+		<equals arg1="${appserver.home}" arg2="${appserver.home}" />
+	</condition>
+	<condition property="appserver.home" value="${env.APPSRV_HOME}" else="${jboss.home}">
+		<contains string="${jboss.home}" substring="JBOSS_HOME" />
+	</condition>
+
+	<property name="deploy.dir" value="${appserver.home}/server/default/deploy" />
+
+	<!-- End Directory properties -->
+
+	<!-- File properties -->
+	<property name="archive.name" value="cesecore" />
+
+	<!-- End File properties -->
+
+	<fail message="appserver.home (${appserver.home}) can not end with a slash.">
+		<condition>
+			<or>
+				<contains string="${appserver.home}/thereisverylittlechancethatthisstringalreadyexistsinthepath" substring="//thereisverylittlechancethatthisstringalreadyexistsinthepath" />
+				<contains string="${appserver.home}\\thereisverylittlechancethatthisstringalreadyexistsinthepath" substring="\\\\thereisverylittlechancethatthisstringalreadyexistsinthepath" />
+			</or>
+		</condition>
+	</fail>
+
+	<!-- Auto-detect supported application server type -->
+	<available file="${appserver.home}/client/jboss-appclient.jar" property="appserver.type" value="jboss"/>
+	<available file="${appserver.home}/client/cxf-api.jar" property="appserver.subtype" value="jboss6"/>
+	<available file="${appserver.home}/lib/javaee.jar" property="appserver.type" value="glassfish"/>
+	<available file="${appserver.home}/wlserver_10.3/server/lib/wlclient.jar" property="appserver.type" value="weblogic"/>
+	<available file="${appserver.home}/lib/commandlineutils.jar" property="appserver.type" value="websphere"/>
+	<!-- Not yet tested:
+		<available file="${appserver.home}/bin/server.jar" property="appserver.type" value="geronimo"/>
+	-->
+	<fail message="'appserver.type' could not be detected in location '${appserver.home}' or is not configured.${line.separator}Glassfish 2.1.1, JBoss 5.1.0.GA, JBoss 6.0.0, WebLogic 10.3.3, WebSphere 7.0.0.13 can be detected. (Normally you should not have to configure this.)" unless="appserver.type"/>
+
+	<!-- Include Hibernate JPA libraries if they don't exist in the current application server. -->
+	<condition property="bundle-hibernate-jpa">
+		<or>
+			<matches pattern="glassfish" string="${appserver.type}" />
+			<matches pattern="weblogic" string="${appserver.type}" />
+		</or>
+	</condition>
+	
+	<condition property="bundle-hibernate-exclude" value="" else="**">
+		<isset property="bundle-hibernate-jpa" />
+	</condition>
+
+	<!-- Now when we have read and processed all properties we can print the values used -->
+	<echo message="appserver.home: ${appserver.home}"/>
+	<echo message="appserver.type: ${appserver.type}"/>
+	<echo message="database.vendor: ${database.vendor}"/>
+	<echo message="datasource.jndi-name-prefix: ${datasource.jndi-name-prefix}"/>
+	<echo message="datasource.jndi-name: ${datasource.jndi-name}"/>
+	<echo message="bundle-hibernate-exclude: ${bundle-hibernate-exclude}"/>
+	
+	<!-- Classpaths -->
+
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+	</path>
+
+	<path id="test.classpath">
+		<pathelement location="${classes-entity.dir}" />
+		<pathelement location="${classes-ejb.dir}" />
+		<path refid="test.client.classpath"/>
+	</path>
+
+	<path id="test.client.classpath">
+		<pathelement location="${classes-client.dir}" />
+		<pathelement location="${classes-entity.dir}" />
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+		<!-- src.dir needed for profilemappings.properties -->
+		<pathelement location="${src.dir}" />
+	</path>
+
+	<path id="lib.jee.classpath">
+		<fileset dir="${appserver.home}">
+			<!-- JBoss 5.0.0 -->
+			<include name="client/jbossall-client.jar" />
+			<include name="client/jnp-client.jar" />			
+			<include name="client/jboss-javaee.jar" />
+			<include name="client/jboss-logging-spi.jar" />
+			<include name="client/jboss-client.jar" />
+			<include name="client/jboss-security-spi.jar" />
+			<include name="client/jboss-serialization.jar" />
+			<include name="client/jboss-common-core.jar" />
+			<include name="client/jboss-remoting.jar" />
+			<include name="client/concurrent.jar" />
+			<include name="client/jbosssx-client.jar" />
+			<include name="client/jboss-integration.jar" />
+			<!--
+			<include name="client/xmlsec.jar" />
+			-->
+			
+			<!-- JBoss 5.1.0 for Remote EJB-->
+	    	<include name="client/jboss-ejb*.jar"/>
+	    	<include name="client/jboss-aop-client.jar"/>
+	    	<include name="client/jboss-aspect-jdk50-client.jar"/>
+
+			<!-- JBoss 6.0.0 for Remote EJB-->
+			<include name="client/jboss-logging*.jar"/>
+			<include name="client/jboss-metadata-ejb.jar"/>
+
+			<!-- glassfish v2.1.1 -->
+			<include name="lib/javaee.jar"/>
+			<include name="lib/appserv-rt.jar"/>
+			<include name="lib/appserv-ext.jar"/>
+			<include name="lib/appserv-deployment-client.jar"/>
+			<!-- Weblogic 10.3.3 (generic) -->
+			<include name="wlserver_10.3/server/lib/wlfullclient.jar"/> <!-- built with "java -jar wljarbuilder.jar" -->
+			<include name="wlserver_10.3/server/lib/wlclient.jar"/>
+			<include name="wlserver_10.3/server/lib/wlthint3client.jar"/>
+			<include name="wlserver_10.3/server/lib/webserviceclient.jar"/>
+			<include name="wlserver_10.3/server/lib/wls-api.jar"/>
+			<include name="wlserver_10.3/server/lib/wljmsclient.jar"/>
+			<include name="wlserver_10.3/server/lib/wlsafclient.jar"/>
+			<!-- websphere -->
+			<include name="runtimes/com.ibm.*.jar"/>
+		</fileset>
+	</path>
+	<!-- End Classpaths -->
+
+	<!--
+		CeSecore client depends on the CVC library and is used by many modules.
+		the client jar should contain everything needed to use cesecore from clients, i.e. ejb interfaces etc.
+	-->
+	<fileset id="source.fileset.cesecore-client" dir="${src.dir}">
+		<!-- Utility and common classes -->
+		<include name="org/cesecore/util/Tuplet.java"/>
+		<include name="org/cesecore/util/Base64.java"/>	
+	   	<include name="org/cesecore/util/CryptoProviderTools.java"/>
+		<include name="org/cesecore/recovery/RecoveryConfiguration.java"/>
+		<include name="org/cesecore/recovery/exception/*.java"/>
+		<include name="org/cesecore/keys/token/PKCS11CryptoToken.java"/>
+		<include name="org/cesecore/keys/token/SoftCryptoToken.java"/>
+		<include name="org/cesecore/keys/token/CryptoTokenConstants.java"/>
+		<include name="org/cesecore/keys/token/CryptoTokenManager.java"/>
+		<include name="org/cesecore/keys/token/CryptoToken.java"/>
+	   	<include name="org/cesecore/keys/util/KeyTools.java"/>
+		<include name="org/cesecore/jndi/JndiHelper.java"/>
+       	<include name="org/cesecore/jndi/JndiConstants.java"/>
+	   	<include name="org/cesecore/internal/InternalResources.java"/>
+	   	<include name="org/cesecore/internal/IUpgradeableData.java"/>
+	   	<include name="org/cesecore/internal/IUpgradeableDatahashMap.java"/>
+		<include name="org/cesecore/config/OcspConfiguration.java"/>
+	   	<include name="org/cesecore/config/CesecoreConfiguration.java"/>
+	   	<include name="org/cesecore/config/ConfigurationHolder.java"/>
+	   	<include name="org/cesecore/config/ExtendedKeyUsageConfiguration.java"/>
+	   	<include name="org/cesecore/certificates/crl/RevokedCertInfo.java"/>
+	   	<include name="org/cesecore/certificates/util/AlgorithmConstants.java"/>
+	   	<include name="org/cesecore/certificates/util/AlgorithmTools.java"/>
+	   	<include name="org/cesecore/certificates/util/CertTools.java"/>
+	   	<include name="org/cesecore/certificates/util/DnComponents.java"/>
+	   	<include name="org/cesecore/certificates/util/DNFieldExtractor.java"/>
+	   	<include name="org/cesecore/util/StringTools.java"/>	
+		<include name="org/cesecore/certificates/util/cert/CrlExtensions.java"/>
+	   	<include name="org/cesecore/certificates/util/cert/QCStatementExtension.java"/>
+	   	<include name="org/cesecore/certificates/util/cert/SubjectDirAttrExtension.java"/>
+	   	<include name="org/cesecore/certificates/util/cert/CrlExtensions.java"/>
+		<include name="org/cesecore/certificates/util/dn/DNFieldsUtil.java"/>
+		<include name="org/cesecore/certificates/ocsp/exception/OcspFailureException.java"/>
+		<include name="org/cesecore/certificates/ocsp/exception/CryptoProviderException.java"/>
+		<include name="org/cesecore/certificates/ocsp/cache/CryptoTokenAndChain.java"/>
+	   	<include name="org/cesecore/certificates/certificateprofile/CertificateConstants.java"/>
+	   	<include name="org/cesecore/certificates/certificateprofile/CertificatePolicy.java"/>
+	   	<include name="org/cesecore/certificates/certificateprofile/CertificateProfile.java"/>
+		<include name="org/cesecore/certificates/CertificateCreationException.java"/>
+		<include name="org/cesecore/certificates/ca/CA.java"/>
+		<include name="org/cesecore/certificates/ca/X509CA.java"/>
+		<include name="org/cesecore/certificates/ca/X509CAInfo.java"/>
+		<include name="org/cesecore/certificates/ca/CVCCA.java"/>
+		<include name="org/cesecore/certificates/ca/CVCCAInfo.java"/>
+		<include name="org/cesecore/certificates/ca/CAInfo.java"/>
+		<include name="org/cesecore/certificates/ca/CAToken.java"/>
+		<include name="org/cesecore/certificates/ca/IllegalValidityException.java"/>
+		<include name="org/cesecore/certificates/ca/catoken/CATokenContainer.java"/>
+		<include name="org/cesecore/certificates/endentity/ExtendedInformation.java"/>
+		<include name="org/cesecore/certificates/endentity/EndEntityInformation.java"/>
+		<include name="org/cesecore/certificates/certificate/certextensions/BasicCertificateExtension.java"/>
+		<include name="org/cesecore/certificates/certificate/request/*.java"/>
+		<include name="org/cesecore/audit/enums/EventStatus.java"/>
+	   	<include name="org/cesecore/audit/enums/EventType.java"/>
+	   	<include name="org/cesecore/audit/enums/EventTypes.java"/>
+	   	<include name="org/cesecore/audit/enums/ModuleTypes.java"/>
+	   	<include name="org/cesecore/audit/enums/ServiceTypes.java"/>
+	   	<include name="org/cesecore/audit/SecurityEventsAuditor.java"/>
+	    <include name="org/cesecore/audit/AuditLogValidationReport.java"/>
+	    <include name="org/cesecore/audit/AuditLogReportElem.java"/>
+	    <include name="org/cesecore/audit/log/AuditLogManagerProcessException.java"/>
+	    <include name="org/cesecore/audit/log/AuditLogSigningException.java"/>
+	   	<include name="org/cesecore/audit/impl/queued/entity/HmacLogManagementData.java"/>
+	   	<include name="org/cesecore/audit/impl/queued/entity/DigSignLogManagementData.java"/>
+	   	<include name="org/cesecore/audit/impl/queued/entity/AuditLogCryptoTokenConfigData.java"/>
+	   	<include name="org/cesecore/authentication/tokens/AuthenticationToken.java"/>
+		<include name="org/cesecore/authentication/tokens/X509CertificateAuthenticationToken.java"/>
+	   	<include name="org/cesecore/authentication/tokens/AuthenticationProvider.java"/>
+	   	<include name="org/cesecore/authentication/tokens/UsernamePrincipal.java"/>
+		<include name="org/cesecore/authorization/cache/AccessTreeCache.java"/>
+		<include name="org/cesecore/authorization/access/AccessTreeNode.java"/>
+		<include name="org/cesecore/authorization/access/AccessTree.java"/>
+		<include name="org/cesecore/authorization/control/StandardRules.java"/>
+		<include name="org/cesecore/time/TrustedTimeUnavailableException.java"/>
+        <include name="org/cesecore/time/providers/NtpClientParser.java"/>
+        <include name="org/cesecore/time/providers/SimpleProvider.java"/>
+		<!-- EJB interfaces -->
+		<include name="org/cesecore/time/TrustedTimeSession*.java"/>
+		<exclude name="org/cesecore/time/TrustedTimeSessionBean.java"/>
+		<include name="org/cesecore/time/TrustedTimeWatcherSession*.java"/>
+		<exclude name="org/cesecore/time/TrustedTimeWatcherSessionBean.java"/>
+		<exclude name="org/cesecore/roles/management/RoleManagementSessionBean.java"/>
+		<include name="org/cesecore/roles/management/RoleManagementSession*.java"/>		
+		<include name="org/cesecore/roles/access/RoleAccessSession*.java"/>
+		<exclude name="org/cesecore/roles/access/RoleAccessSessionBean.java"/>
+    	<include name="org/cesecore/keys/token/CryptoTokenSession*.java"/>
+		<exclude name="org/cesecore/keys/token/CryptoTokenSessionBean.java"/>
+        <include name="org/cesecore/keys/key/management/CertificateKeyAssociationSession*.java"/>
+        <exclude name="org/cesecore/keys/key/management/CertificateKeyAssociationSessionBean.java"/>
+        <include name="org/cesecore/keys/key/management/CertificateKeyRetrievalSession*.java"/>
+        <exclude name="org/cesecore/keys/key/management/CertificateKeyRetrievalSessionBean.java"/>
+		<include name="org/cesecore/certificates/ocsp/standalone/StandaloneOcspResponseGeneratorSession*.java"/>
+		<exclude name="org/cesecore/certificates/ocsp/standalone/StandaloneOcspResponseGeneratorSessionBean.java"/>
+		<include name="org/cesecore/certificates/ocsp/integrated/IntegratedOcspResponseGeneratorSession*.java"/>
+		<exclude name="org/cesecore/certificates/ocsp/integrated/IntegratedOcspResponseGeneratorSessionBean.java"/>
+		<include name="org/cesecore/certificates/crl/CrlStoreSession*.java"/>
+		<exclude name="org/cesecore/certificates/crl/CrlStoreSessionBean*.java"/>
+		<include name="org/cesecore/certificates/crl/CrlCreateSession*.java"/>
+		<exclude name="org/cesecore/certificates/crl/CrlCreateSessionBean*.java"/>
+		<include name="org/cesecore/certificates/certificateprofile/CertificateProfileSession*.java"/>
+		<exclude name="org/cesecore/certificates/certificateprofile/CertificateProfileSessionBean*.java"/>
+		<include name="org/cesecore/certificates/ca/catoken/CaTokenSession*.java"/>
+		<exclude name="org/cesecore/certificates/ca/catoken/CaTokenSessionBean.java"/>
+		<include name="org/cesecore/certificates/ca/CaSession*.java"/>
+		<exclude name="org/cesecore/certificates/ca/CaSessionBean*.java"/>
+		<include name="org/cesecore/certificates/certificate/CertificateStoreSession*.java"/>
+		<exclude name="org/cesecore/certificates/certificate/CertificateStoreSessionBean*.java"/>
+		<include name="org/cesecore/certificates/certificate/CertificateCreateSession*.java"/>
+		<exclude name="org/cesecore/certificates/certificate/CertificateCreateSessionBean*.java"/>
+		<include name="org/cesecore/authentication/AuthenticationSession*.java"/>
+		<exclude name="org/cesecore/authentication/AuthenticationSessionBean*.java"/>
+		<include name="org/cesecore/authorization/user/AccessUserAspectManagerSession*.java"/>
+		<exclude name="org/cesecore/authorization/user/AccessUserAspectManagerSessionBean.java"/>
+		<include name="org/cesecore/authorization/rules/AccessRuleManagementSession*.java"/>
+		<exclude name="org/cesecore/authorization/rules/AccessRuleManagementSessionBean.java"/>
+        <include name="org/cesecore/authorization/control/AccessControlSession*.java"/>
+        <exclude name="org/cesecore/authorization/control/AccessControlSessionBean.java"/>
+	    <include name="org/cesecore/authorization/cache/AccessTreeUpdate*.java"/>
+	    <exclude name="org/cesecore/authorization/cache/AccessTreeUpdateSessionBean.java"/>
+		<include name="org/cesecore/audit/**/*Session*.java"/>
+		<exclude name="org/cesecore/audit/**/*SessionBean.java"/>
+		<include name="org/cesecore/recovery/backup/BackupSession*.java"/>
+		<exclude name="org/cesecore/recovery/backup/BackupSessionBean.java"/>
+		<include name="org/cesecore/recovery/restore/RestoreSession*.java"/>        
+		<exclude name="org/cesecore/recovery/restore/RestoreSessionBean.java"/>        
+	</fileset>
+	<pathconvert refid="source.fileset.cesecore-client" pathsep=" " property="source.fileset.cesecore-client.files"><map from="${src.dir}/" to=""/></pathconvert>
+
+	<fileset id="source.fileset.cesecore-entity" dir="${src.dir}" excludes="${source.fileset.cesecore-client.files}">
+		<include name="org/cesecore/roles/RoleData.java"/>
+		<include name="org/cesecore/certificates/certificateprofile/CertificateProfileData.java"/>		
+		<include name="org/cesecore/authorization/rules/AccessRuleData.java"/>	
+		<include name="org/cesecore/authorization/cache/AccessTreeUpdateData.java"/>
+		<include name="org/cesecore/certificates/ca/CAData.java"/>
+		<include name="org/cesecore/certificates/certificate/CertificateData.java"/>
+		<include name="org/cesecore/certificates/crl/CRLData.java"/>
+        <include name="org/cesecore/keys/key/management/CertificateKeyAssociationData.java"/>
+	    <include name="org/cesecore/audit/impl/queued/entity/AuditLogData.java"/>
+	    <include name="org/cesecore/audit/impl/queued/entity/AuditLogCryptoTokenConfigData.java"/>
+	    <include name="org/cesecore/audit/impl/integrityprotected/AuditRecordData.java"/>
+	</fileset>
+	<pathconvert refid="source.fileset.cesecore-entity" pathsep=" " property="source.fileset.cesecore-entity.files"><map from="${src.dir}/" to=""/></pathconvert>
+
+	<fileset id="source.fileset.cesecore-ejb" dir="${src.dir}" excludes="${source.fileset.cesecore-client.files} ${source.fileset.cesecore-entity.files}">
+		<include name="org/cesecore/time/TrustedTimeSessionBean.java"/>
+		<include name="org/cesecore/time/TrustedTimeWatcherSessionBean.java"/>
+		<include name="org/cesecore/roles/management/RoleManagementSessionBean.java"/>
+		<include name="org/cesecore/roles/access/RoleAccessSessionBean.java"/>
+		<include name="org/cesecore/keys/token/CryptoTokenSessionBean.java"/>
+		<include name="org/cesecore/keys/key/management/CertificateKeyAssociationSessionBean.java"/>
+		<include name="org/cesecore/keys/key/management/CertificateKeyRetrievalSessionBean.java"/>		
+		<include name="org/cesecore/certificates/ocsp/OcspResponseSessionBean.java" />
+		<include name="org/cesecore/certificates/ocsp/standalone/StandaloneOcspResponseGeneratorSessionBean.java"/>
+		<include name="org/cesecore/certificates/ocsp/integrated/IntegratedOcspResponseGeneratorSessionBean.java"/>
+	    <include name="org/cesecore/certificates/crl/CrlStoreSessionBean.java"/>     
+	    <include name="org/cesecore/certificates/crl/CrlCreateSessionBean.java"/>     
+		<include name="org/cesecore/certificates/certificateprofile/CertificateProfileSessionBean.java"/>
+    	<include name="org/cesecore/certificates/certificate/CertificateStoreSessionBean.java"/> 
+		<include name="org/cesecore/certificates/certificate/CertificateCreateSessionBean.java"/> 
+		<include name="org/cesecore/certificates/ca/catoken/CaTokenSessionBean.java"/>
+	    <include name="org/cesecore/certificates/ca/CaSessionBean.java"/>     
+		<include name="org/cesecore/authorization/user/AccessUserAspectManagerSessionBean.java"/>
+		<include name="org/cesecore/authorization/rules/AccessRuleManagementSessionBean.java"/>
+        <include name="org/cesecore/authorization/control/AccessControlSessionBean.java"/>
+        <include name="org/cesecore/authorization/cache/AccessTreeUpdateSessionBean.java"/>
+		<include name="org/cesecore/authentication/AuthenticationSessionBean.java"/>
+		<include name="org/cesecore/audit/**/*SessionBean.java"/>
+		<include name="org/cesecore/audit/impl/**/*Device.java"/>
+		<include name="org/cesecore/audit/impl/AuditExporter*.java"/>
+		<include name="org/cesecore/recovery/backup/BackupSessionBean.java"/>
+		<include name="org/cesecore/recovery/restore/RestoreSessionBean.java"/>        
+	</fileset>
+	<pathconvert refid="source.fileset.cesecore-ejb" pathsep=" " property="source.fileset.cesecore-ejb.files"><map from="${src.dir}/" to=""/></pathconvert>
+
+	<!-- DEBUG output of what is included where... 
+	<echo message="source.fileset.cesecore-client.files: ${source.fileset.cesecore-client.files}"/>
+	<echo message="source.fileset.cesecore-entity.files: ${source.fileset.cesecore-entity.files}"/>
+	<echo message="source.fileset.cesecore-ejb.files:    ${source.fileset.cesecore-ejb.files}"/>
+	-->
+	
+</project>

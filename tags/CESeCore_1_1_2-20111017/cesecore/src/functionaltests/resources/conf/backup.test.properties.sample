@@ -1,0 +1,14 @@
+# This file contains properties used for the functional tests for backup/restore. Since these values are database specific 
+# (and can/should not be bundled with CESeCore's standard configuration, they have to be configured here. If they haven't been
+# implemented, the relevant tests should fail nicely, explaining exactly why
+
+# The following two properties represent the database super admin. Since the default database user should not have the power to 
+# tear down and create database tables (to prevent accidental or malicious misuse), a superuser is required for the restore 
+# operation.
+# If the regular user has these privileges (for testing) it can be used instead of a superuser.
+
+# Default: null
+# backup.database.superuser.username=
+
+# Default: null
+# backup.database.superuser.password=
