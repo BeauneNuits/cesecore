@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cesecore-ejb" basedir=".">
+	
+    <target name="handlepersistence">
+    	<!-- Specify Hibernate dialect -->
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.DB2Dialect"><equals arg1="${database.vendor}" arg2="db2"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect"><equals arg1="${database.vendor}" arg2="derby"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect"><equals arg1="${database.vendor}" arg2="hsqldb"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.InformixDialect"><equals arg1="${database.vendor}" arg2="informix"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.IngresDialect"><equals arg1="${database.vendor}" arg2="ingres"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"><equals arg1="${database.vendor}" arg2="mssql"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"><equals arg1="${database.vendor}" arg2="mysql"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect"><equals arg1="${database.vendor}" arg2="oracle"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"><equals arg1="${database.vendor}" arg2="postgres"/></condition>
+    	<condition property="hibernate.dialect" value="org.hibernate.dialect.SybaseDialect"><equals arg1="${database.vendor}" arg2="sybase"/></condition>
+    	<fail unless="hibernate.dialect" message="Unsupported database type '${database.vendor}'."/>
+    	<!-- Specify JTA lookup if Weblogic -->
+    	<condition property="persistence.enable-weblogic-jta-lookup1" value="-->"><equals arg1="${appserver.type}" arg2="weblogic"/></condition>
+    	<condition property="persistence.enable-weblogic-jta-lookup2" value="&lt;!--"><equals arg1="${appserver.type}" arg2="weblogic"/></condition>
+    	<condition property="persistence.enable-websphere-jta-lookup1" value="-->"><equals arg1="${appserver.type}" arg2="websphere"/></condition>
+    	<condition property="persistence.enable-websphere-jta-lookup2" value="&lt;!--"><equals arg1="${appserver.type}" arg2="websphere"/></condition>
+	
+    	<mkdir dir="${classes-entity.dir}/META-INF"/>
+    	<copy file="${resources.dir}/persistence/persistence-ds-template.xml" tofile="${classes-entity.dir}/META-INF/persistence.xml" failonerror="true" overwrite="true">
+    		<filterchain>
+				<expandproperties/>
+    		</filterchain>
+    	</copy>
+    </target>
+
+    <target name="handleorm">
+		<copy file="${resources.dir}/persistence/orm-${database.vendor}.xml" tofile="${classes-entity.dir}/META-INF/orm.xml" failonerror="true" overwrite="true"/>
+	</target>
+
+    <target name="handlecache">
+        <copy file="${resources.dir}/persistence/ehcache.xml" tofile="${classes-entity.dir}/ehcache.xml" failonerror="true" overwrite="true"/>
+	</target>
+
+    <target name="handleintres">
+    	<copy todir="${classes-ejb.dir}/intresources" failonerror="true" overwrite="true">
+    	    <fileset dir="${resources.dir}/intresources"/>
+    	  </copy>
+	</target>
+
+	<target name="archive-ejb" description="Construct an EJB JAR file." depends="test:unit, handleintres, archive-entity">
+		<jar destfile="${build.dir}/cesecore-ejb_${version}.jar" basedir="${classes-ejb.dir}" includes="**/*.class **/*.xml **/*.properties">
+			<zipfileset prefix="META-INF" dir="${resources.dir}/appserver" includes="*.xml"/>	
+		</jar>
+	</target>
+
+
+	<target name="archive-entity" description="Construct a JPA entity jar file." depends="archive-client, handlepersistence, handleorm, handlecache">
+		<jar destfile="${build.dir}/cesecore-entity_${version}.jar" basedir="${classes-entity.dir}" includes="**/*.class **/*.xml" />
+	</target>
+
+	<target name="archive-client" description="Construct a jar file with common class files.">
+		<copy file="${src.dir}/profilemappings.properties" tofile="${classes-client.dir}/profilemappings.properties" failonerror="true" overwrite="true"/>
+		<jar destfile="${build.dir}/cesecore-client_${version}.jar" basedir="${classes-client.dir}" includes="**/*.class **/*.xml **/*.properties" />
+	</target>
+
+</project>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app version="2.5" id="web-app_1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://java.sun.com/xml/ns/javaee" 
+    xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+    http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+<!-- 
+   <servlet>
+      <description><![CDATA[Dummy Servlet]]></description>
+      <display-name>DummyServlet</display-name>
+      <servlet-name>DummyServlet</servlet-name>
+      <servlet-class>org.cesecore.dummy.DummyServlet</servlet-class>
+      <load-on-startup>99</load-on-startup>
+   </servlet>
+
+
+   <servlet-mapping>
+      <servlet-name>DummyServlet</servlet-name>
+      <url-pattern>/dummyservlet</url-pattern>
+   </servlet-mapping>
+ -->
+
+   <session-config>
+      <session-timeout>30</session-timeout>
+   </session-config>
+
+</web-app>
